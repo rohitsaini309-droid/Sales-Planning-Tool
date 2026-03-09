@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Air Cargo Annual/Quarterly Planning Tool</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Air Cargo Annual/Quarterly Planning Tool</h1>
+            <div class="header-actions">
+                <button id="exportBtn" class="btn btn-secondary">Export to CSV</button>
+                <button id="consolidateBtn" class="btn btn-primary">View Consolidated Plan</button>
+            </div>
+        </header>
+
+        <!-- Export Modal -->
+        <div id="exportModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Export Daily Plan</h2>
+                <div class="form-group">
+                    <label>Sales Person</label>
+                    <select id="exportFilterSalesPerson">
+                        <option value="">All Sales Persons</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Customer</label>
+                    <select id="exportFilterCustomer">
+                        <option value="">All Customers</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Opportunity Type</label>
+                    <select id="exportFilterOpportunityType">
+                        <option value="">All Opportunity Types</option>
+                    </select>
+                </div>
+                <button id="confirmExport" class="btn btn-primary">Export CSV</button>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="input">Sales Input</button>
+            <button class="tab-btn" data-tab="bsaDaily">BSA Daily Plan</button>
+            <button class="tab-btn" data-tab="charterDaily">Charter Daily Plan</button>
+            <button class="tab-btn" data-tab="consolidated">Consolidated View</button>
+        </div>
+
+        <div id="inputTab" class="tab-content active">
+            <div class="input-form">
+                <h2>Sales Projection Input</h2>
+                <form id="salesInputForm">
+                    <!-- Section 1: General Details -->
+                    <div class="form-section">
+                        <h3 class="section-title">Section 1: General Details</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Sales Person Name *</label>
+                                <input type="text" id="salesPerson" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Customer Name *</label>
+                                <input type="text" id="customer" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Opportunity Type *</label>
+                                <select id="opportunityType" required>
+                                    <option value="">Select Type</option>
+                                    <option value="Charter">Charter</option>
+                                    <option value="BSA">BSA</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 2: Opportunity Details (Charter) -->
+                    <div id="charterSection" class="form-section" style="display:none;">
+                        <h3 class="section-title">Section 2: Opportunity Details</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Route *</label>
+                                <input type="text" id="charterRoute" placeholder="e.g., AAA-BBB-CCC">
+                            </div>
+                            <div class="form-group">
+                                <label>Overall Start Date *</label>
+                                <input type="date" id="charterStartDate">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Overall End Date *</label>
+                                <input type="date" id="charterEndDate">
+                            </div>
+                            <div class="form-group">
+                                <label>Charter Type *</label>
+                                <select id="charterType">
+                                    <option value="">Select Type</option>
+                                    <option value="Domestic">Domestic</option>
+                                    <option value="International">International</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Ferry Leg</label>
+                                <input type="text" id="ferryLeg" placeholder="e.g., AAA-BBB">
+                            </div>
+                            <div class="form-group">
+                                <label>Carrier *</label>
+                                <select id="carrier">
+                                    <option value="">Select Carrier</option>
+                                    <option value="21Air">21Air</option>
+                                    <option value="ATSG">ATSG</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Gauge *</label>
+                                <select id="gauge">
+                                    <option value="">Select Gauge</option>
+                                    <option value="767-300">767-300</option>
+                                    <option value="767-600">767-600</option>
+                                    <option value="A330">A330</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <h4 style="color: #2c3e50; font-size: 16px; margin: 20px 0 15px 0;">Time Period Details</h4>
+                        <p style="color: #7f8c8d; font-size: 14px; margin-bottom: 15px;">
+                            Add multiple time periods to account for changes in operations or revenue over time
+                        </p>
+
+                        <div id="charterPeriodsContainer"></div>
+
+                        <button type="button" id="addCharterPeriod" class="btn btn-secondary" style="margin-top: 10px;">
+                            + Add Time Period
+                        </button>
+                    </div>
+
+                    <!-- Section 2: Opportunity Details (BSA) -->
+                    <div id="bsaSection" class="form-section" style="display:none;">
+                        <h3 class="section-title">Section 2: Opportunity Details</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Route *</label>
+                                <input type="text" id="route" placeholder="e.g., AAA-BBB-CCC">
+                            </div>
+                            <div class="form-group">
+                                <label>Overall Start Date *</label>
+                                <input type="date" id="startDate">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Overall End Date *</label>
+                                <input type="date" id="endDate">
+                            </div>
+                            <div class="form-group">
+                                <label>Capacity Type *</label>
+                                <select id="capacityType">
+                                    <option value="">Select Type</option>
+                                    <option value="Comingled">Comingled</option>
+                                    <option value="Dedicated">Dedicated</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Shipment Type *</label>
+                                <select id="shipmentType">
+                                    <option value="">Select Type</option>
+                                    <option value="Skid-Level">Skid-Level</option>
+                                    <option value="Piece-level">Piece-level</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Customer ULD Type *</label>
+                                <select id="customerUldType">
+                                    <option value="">Select Type</option>
+                                    <option value="AAX">AAX</option>
+                                    <option value="DQF">DQF</option>
+                                    <option value="LAY">LAY</option>
+                                    <option value="AMP">AMP</option>
+                                    <option value="AAP">AAP</option>
+                                    <option value="PMC">PMC</option>
+                                    <option value="PAJ">PAJ</option>
+                                    <option value="Others">Others</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row" id="amazonUldTypeRow" style="display:none;">
+                            <div class="form-group">
+                                <label>Amazon ULD Type *</label>
+                                <select id="amazonUldType">
+                                    <option value="">Select Type</option>
+                                    <option value="AAX">AAX</option>
+                                    <option value="DQF">DQF</option>
+                                    <option value="LAY">LAY</option>
+                                    <option value="AMP">AMP</option>
+                                    <option value="AAP">AAP</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Rate: Unit of Measurement *</label>
+                                <select id="rateUnit">
+                                    <option value="">Select Unit</option>
+                                    <option value="per Lb">per Lb</option>
+                                    <option value="per ULD">per ULD</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <h4 style="color: #2c3e50; font-size: 16px; margin: 20px 0 15px 0;">Time Period Details</h4>
+                        <p style="color: #7f8c8d; font-size: 14px; margin-bottom: 15px;">
+                            Add multiple time periods to account for volume ramp-up or changes over time
+                        </p>
+
+                        <div id="bsaPeriodsContainer"></div>
+
+                        <button type="button" id="addBsaPeriod" class="btn btn-secondary" style="margin-top: 10px;">
+                            + Add Time Period
+                        </button>
+                    </div>
+
+                    <!-- Section 3: Ancillary Services (Charter) -->
+                    <div id="charterAncillarySection" class="form-section" style="display:none;">
+                        <h3 class="section-title">Section 3: Ancillary Services</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Build @Origin</label>
+                                <select id="charterBuildOrigin">
+                                    <option value="No">No</option>
+                                    <option value="Yes-AFN">Yes-AFN</option>
+                                    <option value="Yes-3P">Yes-3P</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Break @Destination</label>
+                                <select id="charterBreakDestination">
+                                    <option value="No">No</option>
+                                    <option value="Yes-AFN">Yes-AFN</option>
+                                    <option value="Yes-3P">Yes-3P</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Linehaul</label>
+                                <select id="charterLinehaul">
+                                    <option value="No">No</option>
+                                    <option value="Yes">Yes</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Cost per Linehaul Movement (USD)</label>
+                                <input type="number" id="charterLinehaulCost" step="0.01" value="0">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Screening</label>
+                                <select id="charterScreening">
+                                    <option value="No">No</option>
+                                    <option value="Yes">Yes</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Cost per Screening Event (USD)</label>
+                                <input type="number" id="charterScreeningCost" step="0.01" value="0">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>WFS CVG</label>
+                                <select id="charterWfsCVG">
+                                    <option value="No">No</option>
+                                    <option value="Yes">Yes</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 3: Ancillary Services (BSA) -->
+                    <div id="ancillarySection" class="form-section" style="display:none;">
+                        <h3 class="section-title">Section 3: Ancillary Services</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Build @Origin</label>
+                                <select id="buildOrigin">
+                                    <option value="No">No</option>
+                                    <option value="Yes-AFN">Yes-AFN</option>
+                                    <option value="Yes-3P">Yes-3P</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Break @Destination</label>
+                                <select id="breakDestination">
+                                    <option value="No">No</option>
+                                    <option value="Yes-AFN">Yes-AFN</option>
+                                    <option value="Yes-3P">Yes-3P</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Linehaul</label>
+                                <select id="linehaul">
+                                    <option value="No">No</option>
+                                    <option value="Yes">Yes</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Cost per Linehaul Movement (USD)</label>
+                                <input type="number" id="linehaulCost" step="0.01" value="0">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Screening</label>
+                                <select id="screening">
+                                    <option value="No">No</option>
+                                    <option value="Yes">Yes</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Cost per Screening Event (USD)</label>
+                                <input type="number" id="screeningCost" step="0.01" value="0">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Primeflight CVG</label>
+                                <select id="primeflightCVG">
+                                    <option value="No">No</option>
+                                    <option value="Yes">Yes</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Cargoforce ULD Movement</label>
+                                <select id="cargoforceULD">
+                                    <option value="No">No</option>
+                                    <option value="Yes">Yes</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 4: Holiday Impact (Charter) -->
+                    <div id="charterHolidaySection" class="form-section" style="display:none;">
+                        <h3 class="section-title">Section 4: Holiday Impact</h3>
+                        <p style="color: #7f8c8d; font-size: 14px; margin-bottom: 15px;">
+                            <strong>Note:</strong> For international charters, consider holidays at non-US gateways for
+                            your inputs
+                        </p>
+
+                        <h4 style="color: #2c3e50; font-size: 16px; margin: 20px 0 15px 0;">Anticipated Holidays</h4>
+                        <div id="charterAnticipatedHolidaysContainer"></div>
+                        <button type="button" id="addCharterAnticipatedHoliday" class="btn btn-secondary"
+                            style="margin: 10px 0;">
+                            + Add Anticipated Holiday
+                        </button>
+                    </div>
+
+                    <!-- Section 4: Holiday Impact (BSA) -->
+                    <div id="bsaHolidaySection" class="form-section" style="display:none;">
+                        <h3 class="section-title">Section 4: Holiday Impact</h3>
+
+                        <h4 style="color: #2c3e50; font-size: 16px; margin: 20px 0 15px 0;">Anticipated Holidays</h4>
+                        <div id="bsaAnticipatedHolidaysContainer"></div>
+                        <button type="button" id="addBsaAnticipatedHoliday" class="btn btn-secondary"
+                            style="margin: 10px 0;">
+                            + Add Anticipated Holiday
+                        </button>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Add to Plan</button>
+                </form>
+            </div>
+
+            <div class="saved-inputs">
+                <h3>Saved Inputs</h3>
+                <div id="inputsList"></div>
+            </div>
+        </div>
+
+        <div id="bsaDailyTab" class="tab-content">
+            <h2>BSA Daily Plan View</h2>
+            <div class="filters">
+                <select id="bsaFilterSalesPerson">
+                    <option value="">All Sales Persons</option>
+                </select>
+                <select id="bsaFilterCustomer">
+                    <option value="">All Customers</option>
+                </select>
+                <select id="bsaFilterRoute">
+                    <option value="">All Routes</option>
+                </select>
+                <button id="applyBsaFilter" class="btn btn-secondary">Apply Filter</button>
+                <button id="clearBsaFilter" class="btn btn-secondary">Clear</button>
+            </div>
+            <div id="bsaDailyPlanTable"></div>
+        </div>
+
+        <div id="charterDailyTab" class="tab-content">
+            <h2>Charter Daily Plan View</h2>
+            <div class="filters">
+                <select id="charterFilterSalesPerson">
+                    <option value="">All Sales Persons</option>
+                </select>
+                <select id="charterFilterCustomer">
+                    <option value="">All Customers</option>
+                </select>
+                <select id="charterFilterRoute">
+                    <option value="">All Routes</option>
+                </select>
+                <button id="applyCharterFilter" class="btn btn-secondary">Apply Filter</button>
+                <button id="clearCharterFilter" class="btn btn-secondary">Clear</button>
+            </div>
+            <div id="charterDailyPlanTable"></div>
+        </div>
+
+        <div id="consolidatedTab" class="tab-content">
+            <div class="filters">
+                <select id="consolidatedFilterSalesPerson">
+                    <option value="">All Sales Persons</option>
+                </select>
+                <select id="consolidatedFilterCustomer">
+                    <option value="">All Customers</option>
+                </select>
+                <select id="consolidatedFilterOpportunityType">
+                    <option value="">All Opportunity Types</option>
+                </select>
+                <button id="applyConsolidatedFilter" class="btn btn-secondary">Apply Filter</button>
+                <button id="clearConsolidatedFilter" class="btn btn-secondary">Clear</button>
+            </div>
+
+            <h3 style="margin: 20px 0 15px 0; color: #2c3e50;">Overall Summary</h3>
+            <div class="summary-cards">
+                <div class="card">
+                    <h3>Total Revenue</h3>
+                    <p id="totalRevenue">$0</p>
+                </div>
+                <div class="card">
+                    <h3>BSA Revenue</h3>
+                    <p id="bsaRevenue">$0</p>
+                </div>
+                <div class="card">
+                    <h3>Charter Revenue</h3>
+                    <p id="charterRevenue">$0</p>
+                </div>
+            </div>
+
+            <div class="summary-cards">
+                <div class="card">
+                    <h3>Total Ancillary Revenue</h3>
+                    <p id="totalAncillaryRevenue">$0</p>
+                </div>
+                <div class="card">
+                    <h3>BSA Ancillary Revenue</h3>
+                    <p id="bsaAncillaryRevenue">$0</p>
+                </div>
+                <div class="card">
+                    <h3>Charter Ancillary Revenue</h3>
+                    <p id="charterAncillaryRevenue">$0</p>
+                </div>
+            </div>
+
+            <div class="summary-cards">
+                <div class="card">
+                    <h3>Total Volume</h3>
+                    <p id="totalVolume">0 cuft</p>
+                </div>
+                <div class="card">
+                    <h3>Total Weight</h3>
+                    <p id="totalWeight">0 lbs</p>
+                </div>
+                <div class="card">
+                    <h3>Total BSA Shipments</h3>
+                    <p id="totalShipments">0</p>
+                </div>
+                <div class="card">
+                    <h3>Total Charter Rotations</h3>
+                    <p id="totalRotations">0</p>
+                </div>
+            </div>
+
+            <h3 style="margin: 30px 0 15px 0; color: #2c3e50;">Revenue by Customer & Route</h3>
+            <div id="consolidatedTable"></div>
+
+            <h3 style="margin: 30px 0 15px 0; color: #2c3e50;">Revenue by Month</h3>
+            <div id="monthlyRevenueTable"></div>
+
+            <h3 style="margin: 30px 0 15px 0; color: #2c3e50;">Revenue by Week</h3>
+            <div id="weeklyRevenueTable"></div>
+        </div>
+    </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
